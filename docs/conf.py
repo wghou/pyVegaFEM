@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# pyvegafem documentation build configuration file, created by
+# python_exameple documentation build configuration file, created by
 # sphinx-quickstart on Fri Feb 26 00:29:33 2016.
 #
 # This file is execfile()d with the current directory set to its
@@ -258,7 +258,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'pyvegafem', u'pyvegafem Documentation',
+    (main_doc, 'pyvegafem', u'pyvegafem Documentation',
      [author], 1)
 ]
 

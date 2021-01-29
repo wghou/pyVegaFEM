@@ -11,12 +11,13 @@ build:
 
 requirements:
   build:
-    - {{ compiler('cxx') }}
+    - "{{ compiler('cxx') }}"
+    - cmake
+    - ninja
 
   host:
     - python
     - pip
-    - pybind11 >=2.6.0
 
   run:
     - python
@@ -31,5 +32,5 @@ test:
     - python tests/test.py
 
 about:
-  summary: An example project built with pybind11.
+  summary: python interface of VegaFEM built with pybind11.
   license_file: LICENSE

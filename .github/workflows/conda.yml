@@ -12,8 +12,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.6"， "3.8"]
+        platform: [ubuntu-latest, windows-2016, macos-latest]
+        python-version: ["3.6", "3.8"]
 
     runs-on: ${{ matrix.platform }}
 
@@ -24,13 +24,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: true
 
       - name: Get conda
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v2.0.0
         with:
           python-version: ${{ matrix.python-version }}
           channels: conda-forge
-          
+          channel-priority: strict
+
       - name: Prepare
         run: conda install conda-build conda-verify
 
@@ -38,7 +41,7 @@ jobs:
         run: conda build conda.recipe
 
       - name: Install
-        run: conda install -c ${CONDA_PREFIX}/conda-bld/ python_example
+        run: conda install -c ${CONDA_PREFIX}/conda-bld/ pyvegafem
 
       - name: Test
         run: python tests/test.py
