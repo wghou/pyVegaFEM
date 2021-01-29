@@ -5,19 +5,22 @@
 #include"vec3d.h"
 #include"mat3d.h"
 
+class pyElasticForceFEM;
+
 class ElasticForceFEM
 {
+	friend pyElasticForceFEM;
 public:
-	ElasticForceFEM();
-	virtual ~ElasticForceFEM();
-	void init(float *x, int nodeNumber, int* tet, int tetNumber);
+	ElasticForceFEM(const double *x, int nodeNumber, const int* tet, int tetNumber);
+	ElasticForceFEM(const float *x, int nodeNumber, const int* tet, int tetNumber);
+	~ElasticForceFEM();
 	void ComputeForces(float * u, float * internalForces, bool addGravity = false);
 	void SetMaterialParams(double den, double _mu01, double _mu10, double _v1);
-protected:
+private:
 	void ComputeEnergyGradient(int elementIndex, double * invariants, double * gradient);
 	void ComputeDiagonalPFromStretches(int elementIndex, double * lambda, double * PDiag);
 
-protected:
+private:
 	int numVertices = 0;
 	int numElements = 0;
 

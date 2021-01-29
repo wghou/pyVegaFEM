@@ -7,93 +7,83 @@
 
 namespace py = pybind11;
 
-class pyElasticForceFEM : public ElasticForceFEM
+class pyElasticForceFEM
 {
     public:
-    pyElasticForceFEM(py::array_t<float> x, py::array_t<int> tet)
+    pyElasticForceFEM(py::array_t<float, py::array::c_style | py::array::forcecast> x, py::array_t<int, py::array::c_style | py::array::forcecast> tet)
     {
-        py::buffer_info buf1 = x.request(), buf2 = tet.request();
+        fem = new ElasticForceFEM(x.data(), (int)(x.size()/3), tet.data(), (int)(tet.size()/4));
+    }
 
-        if(buf1.ndim !=1 || buf2.ndim !=1)
-        {
-            throw std::runtime_error("Number of dimensions must be one");
-        }
-        
-        int xNum = buf1.size / 3;
-        int tetNum = buf2.size / 4;
-
-        float *ptr1 = (float*) buf1.ptr;
-        int *ptr2 = (int*) buf2.ptr;
-
-        ElasticForceFEM::init(ptr1, xNum, ptr2, tetNum);
+    ~pyElasticForceFEM()
+    {
+        delete fem;
     }
 
     public:
     // setter
     void setDensity(float den)
     {
-        this->density = den;
+        fem->density = den;
     }
 
     void setMu01(float _mu01)
     {
-        this->mu01 = _mu01;
+        fem->mu01 = _mu01;
     }
 
     void setMu10(float _mu10)
     {
-        this->mu10 = _mu10;
+        fem->mu10 = _mu10;
     }
 
     void setV1(float _v1)
     {
-        this->v1 = _v1;
+        fem->v1 = _v1;
     }
 
     float getDensity()
     {
-        return this->density;
+        return fem->density;
     }
 
     float getMu01()
     {
-        return this->mu01;
+        return fem->mu01;
     }
 
     float getMu10()
     {
-        return this->mu10;
+        return fem->mu10;
     }
 
     float gettV1()
     {
-        return this->v1;
+        return fem->v1;
     }
 
-    py::array_t<float> ComputeFroces(py::array_t<float> u, bool addGravity = false )
+    py::array_t<float, py::array::c_style | py::array::forcecast> ComputeForces(py::array_t<float, py::array::c_style | py::array::forcecast> u, bool addGravity = false )
     {
-        py::buffer_info buf1 = u.request();
-
-        if(buf1.ndim !=1)
+        if( u.size() != fem->numVertices*3)
         {
-            throw std::runtime_error("Number of dimensions must be one.");
-        }
-        
-        if(buf1.size / 3 != numVertices)
-        {
-            throw std::runtime_error("Number of u mistmatch with numVertices.");
+            throw std::runtime_error("input size donnot match the mesh size.");
         }
 
-        // result buffer
-        auto result = py::array_t<float>(buf1.size);
-        py::buffer_info buf2 = result.request();
+        auto u_buffer = u.request();
+        float *u_ptr = (float*)u_buffer.ptr;
 
-        float *ptr1 = (float*) buf1.ptr, *ptr2 = (float*) buf2.ptr;
+        // allocate py::array (to pass the result of the C++ function to Python)
+        auto result        = py::array_t<float, py::array::c_style | py::array::forcecast>(fem->numVertices*3);
+        auto result_buffer = result.request();
+        float *result_ptr    = (float *) result_buffer.ptr;
 
-        ElasticForceFEM::ComputeForces(ptr1, ptr2, addGravity);
+        fem->ComputeForces(u_ptr, result_ptr, addGravity);
 
         return result;
     }
+
+    private:
+    ElasticForceFEM* fem = nullptr;
 };
 
 #endif

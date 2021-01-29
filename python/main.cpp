@@ -21,8 +21,8 @@ PYBIND11_MODULE(pyvegafem, m) {
            :toctree: _generate
     )pbdoc";
 
-    py::class_<pyElasticForceFEM>(m, "xx")
-        .def(py::init<py::array_t<float>, py::array_t<int>>())
+    py::class_<pyElasticForceFEM>(m, "FEM")
+        .def(py::init<py::array_t<float, py::array::c_style | py::array::forcecast>, py::array_t<int, py::array::c_style | py::array::forcecast>>())
         .def("setDensity", &pyElasticForceFEM::setDensity)
         .def("setMu01", &pyElasticForceFEM::setMu01)
         .def("setMu10", &pyElasticForceFEM::setMu10)
@@ -31,7 +31,7 @@ PYBIND11_MODULE(pyvegafem, m) {
         .def("getMu01", &pyElasticForceFEM::getMu01)
         .def("getMu10", &pyElasticForceFEM::getMu10)
         .def("gettV1", &pyElasticForceFEM::gettV1)
-        .def("ComputeFroces", &pyElasticForceFEM::ComputeFroces);
+        .def("ComputeForces", &pyElasticForceFEM::ComputeForces);
 
 #ifdef VERSION_INFO
     m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
