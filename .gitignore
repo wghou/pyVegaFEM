@@ -1,3 +1,4 @@
+pybind11/
 build/
 dist/
 _build/

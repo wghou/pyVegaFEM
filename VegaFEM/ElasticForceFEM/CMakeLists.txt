@@ -4,11 +4,11 @@
 cmake_minimum_required (VERSION 3.8)
 
 SET(ElasticForceFEM_SRCS
-elasticForceFEM.cpp
+    elasticForceFEM.cpp
 )
 
 SET(ElasticForceFEM_HDRS
-elasticForceFEM.h
+    elasticForceFEM.h
 )
 
 # Add source to this project's library
