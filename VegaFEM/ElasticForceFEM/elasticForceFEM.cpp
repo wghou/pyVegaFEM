@@ -4,105 +4,26 @@
 #define SVD_singularValue_eps 1e-8
 #define INVERSIONTHRESHOLD          0.1 // max value
 
-ElasticForceFEM::ElasticForceFEM(double *x, int nodeNumber, int* tet, int tetNumber)
+ElasticForceFEM::ElasticForceFEM()
 {
-	numVertices = nodeNumber;
-	numElements = tetNumber;
+	numVertices = 0;
+	numElements = 0;
 
-	X = new double[nodeNumber * 3];
-	Tet = new int[tetNumber * 4];
-
-	memcpy(X, x, sizeof(double)*nodeNumber * 3);
-	memcpy(Tet, tet, sizeof(int)*tetNumber * 4);
-
-
-	dmInverses = (Mat3d*)malloc(sizeof(Mat3d) * numElements);
-	for (int el = 0; el<numElements; el++)
-	{
-		int vaIndex = Tet[el * 4 + 0] * 3;
-		int vbIndex = Tet[el * 4 + 1] * 3;
-		int vcIndex = Tet[el * 4 + 2] * 3;
-		int vdIndex = Tet[el * 4 + 3] * 3;
-
-		Vec3d va(X[vaIndex], X[vaIndex + 1], X[vaIndex + 2]);
-		Vec3d vb(X[vbIndex], X[vbIndex + 1], X[vbIndex + 2]);
-		Vec3d vc(X[vcIndex], X[vcIndex + 1], X[vcIndex + 2]);
-		Vec3d vd(X[vdIndex], X[vdIndex + 1], X[vdIndex + 2]);
-
-		Vec3d dm1 = vd - va;
-		Vec3d dm2 = vd - vb;
-		Vec3d dm3 = vd - vc;
-
-		Mat3d tmp(dm1[0], dm2[0], dm3[0], dm1[1], dm2[1], dm3[1], dm1[2], dm2[2], dm3[2]);
-		//printf("--- dm ---\n");
-		//tmp.print();
-		dmInverses[el] = inv(tmp);
-		//printf("--- inv(dm) ---\n");
-		//dmInverses[e].print();
-	}
-
-
-	areaWeightedVertexNormals = (Vec3d*)malloc(sizeof(Vec3d) * numElements * 4);
-	for (int el = 0; el < numElements; el++)
-	{
-		int vaIndex = Tet[el * 4 + 0] * 3;
-		int vbIndex = Tet[el * 4 + 1] * 3;
-		int vcIndex = Tet[el * 4 + 2] * 3;
-		int vdIndex = Tet[el * 4 + 3] * 3;
-
-		Vec3d va(X[vaIndex], X[vaIndex + 1], X[vaIndex + 2]);
-		Vec3d vb(X[vbIndex], X[vbIndex + 1], X[vbIndex + 2]);
-		Vec3d vc(X[vcIndex], X[vcIndex + 1], X[vcIndex + 2]);
-		Vec3d vd(X[vdIndex], X[vdIndex + 1], X[vdIndex + 2]);
-
-		// compute normals for the four faces: acb, adc, abd, bcd
-		Vec3d acbNormal = cross(vc - va, vb - va);
-		Vec3d adcNormal = cross(vd - va, vc - va);
-		Vec3d abdNormal = cross(vb - va, vd - va);
-		Vec3d bcdNormal = cross(vc - vb, vd - vb);
-
-		// if the tet vertices abcd form a positive orientation, the normals are now correct
-		// otherwise, we need to flip them
-		double orientation = dot(vd - va, cross(vb - va, vc - va));
-		if (orientation < 0)
-		{
-			acbNormal *= -1.0;
-			adcNormal *= -1.0;
-			abdNormal *= -1.0;
-			bcdNormal *= -1.0;
-		}
-
-		// triangle area = 0.5 |u x v|
-		double acbArea = 0.5 * sqrt(dot(acbNormal, acbNormal));
-		double adcArea = 0.5 * sqrt(dot(adcNormal, adcNormal));
-		double abdArea = 0.5 * sqrt(dot(abdNormal, abdNormal));
-		double bcdArea = 0.5 * sqrt(dot(bcdNormal, bcdNormal));
-
-		// normalize
-		acbNormal.normalize();
-		adcNormal.normalize();
-		abdNormal.normalize();
-		bcdNormal.normalize();
-
-		areaWeightedVertexNormals[4 * el + 0] = (acbArea * acbNormal + adcArea * adcNormal + abdArea * abdNormal) / 3.0;
-		areaWeightedVertexNormals[4 * el + 1] = (acbArea * acbNormal + abdArea * abdNormal + bcdArea * bcdNormal) / 3.0;
-		areaWeightedVertexNormals[4 * el + 2] = (acbArea * acbNormal + adcArea * adcNormal + bcdArea * bcdNormal) / 3.0;
-		areaWeightedVertexNormals[4 * el + 3] = (adcArea * adcNormal + abdArea * abdNormal + bcdArea * bcdNormal) / 3.0;
-
-		/*
-		printf("--- areaWeightedVertexNormals ---\n");
-		printf("a = "); areaWeightedVertexNormals[4*el+0].print();
-		printf("b = "); areaWeightedVertexNormals[4*el+1].print();
-		printf("c = "); areaWeightedVertexNormals[4*el+2].print();
-		printf("d = "); areaWeightedVertexNormals[4*el+3].print();
-		*/
-	}
+	X = nullptr;
+	Tet = nullptr;
+	dmInverses = nullptr;
+	areaWeightedVertexNormals = nullptr;
 }
 
-ElasticForceFEM::ElasticForceFEM(float *x, int nodeNumber, int* tet, int tetNumber)
+void ElasticForceFEM::init(float *x, int nodeNumber, int* tet, int tetNumber)
 {
 	numVertices = nodeNumber;
 	numElements = tetNumber;
+
+	if(X != nullptr) delete[] X;
+	if(Tet != nullptr) delete[] Tet;
+	if(dmInverses != nullptr) free(dmInverses);
+	if(areaWeightedVertexNormals != nullptr) free(areaWeightedVertexNormals);
 
 	X = new double[nodeNumber * 3];
 	Tet = new int[tetNumber * 4];
@@ -203,11 +124,10 @@ ElasticForceFEM::ElasticForceFEM(float *x, int nodeNumber, int* tet, int tetNumb
 
 ElasticForceFEM::~ElasticForceFEM()
 {
-	delete[] X;
-	delete[] Tet;
-
-	free(dmInverses);
-	free(areaWeightedVertexNormals);
+	if(X != nullptr) delete[] X;
+	if(Tet != nullptr) delete[] Tet;
+	if(dmInverses != nullptr) free(dmInverses);
+	if(areaWeightedVertexNormals != nullptr) free(areaWeightedVertexNormals);
 }
 
 void ElasticForceFEM::SetMaterialParams(double den, double _mu01, double _mu10, double _v1)

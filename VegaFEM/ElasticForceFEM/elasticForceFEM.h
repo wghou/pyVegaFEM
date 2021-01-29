@@ -8,16 +8,16 @@
 class ElasticForceFEM
 {
 public:
-	ElasticForceFEM(double *x, int nodeNumber, int* tet, int tetNumber);
-	ElasticForceFEM(float *x, int nodeNumber, int* tet, int tetNumber);
-	~ElasticForceFEM();
+	ElasticForceFEM();
+	virtual ~ElasticForceFEM();
+	void init(float *x, int nodeNumber, int* tet, int tetNumber);
 	void ComputeForces(float * u, float * internalForces, bool addGravity = false);
 	void SetMaterialParams(double den, double _mu01, double _mu10, double _v1);
-private:
+protected:
 	void ComputeEnergyGradient(int elementIndex, double * invariants, double * gradient);
 	void ComputeDiagonalPFromStretches(int elementIndex, double * lambda, double * PDiag);
 
-private:
+protected:
 	int numVertices = 0;
 	int numElements = 0;
 

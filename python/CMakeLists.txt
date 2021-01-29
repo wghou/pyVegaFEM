@@ -8,11 +8,14 @@ INCLUDE_DIRECTORIES(
 
 SET(PYTHON_SRCS
     main.cpp
+    pyElasticForceFEM.cpp
 )
 
 SET(PYTHON_HDRS
-
+    pyElasticForceFEM.h
 )
+
+link_libraries(minivector ElasticForceFEM)
 
 pybind11_add_module(pyvegafem ${PYTHON_SRCS} ${PYTHON_HDRS})
 
